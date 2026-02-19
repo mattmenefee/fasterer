@@ -1,13 +1,9 @@
 require 'spec_helper'
-require 'ostruct'
 
 describe Fasterer::Statistics do
   let(:traverser_mock) do
-    traverser = OpenStruct.new
-    traverser.scannable_files = []
-    traverser.offenses_total_count = 0
-    traverser.parse_error_paths = []
-    traverser
+    Struct.new(:scannable_files, :offenses_total_count, :parse_error_paths)
+      .new([], 0, [])
   end
 
   let(:statistics) { Fasterer::Statistics.new(traverser_mock) }
