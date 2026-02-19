@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'ostruct'
 
 describe Fasterer::Statistics do
   let(:traverser_mock) do

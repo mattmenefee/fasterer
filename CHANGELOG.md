@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.0
+
+- Add explicit support for Ruby 4.0
+- Drop support for EOL Ruby versions (2.x, 3.0, 3.1). The minimum required Ruby version is now 3.2.
+
 ## 0.11.0
 
 - There have been multiple issues filed with the colorize gem, such as licencing, gem versions etc. Due to the easy implementation, fasterer will now leverage an internal implementation of this so we don't need to get issues tracked bc of colorize. There might be other issues that arise (perhaps somebody leveraging Windows might have issues), but that's okay, we'll solve it.
