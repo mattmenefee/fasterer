@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'prism'
 require 'fasterer/method_call'
 require 'fasterer/offense'
 require 'fasterer/scanners/offensive'
@@ -124,15 +125,15 @@ module Fasterer
       end
     end
 
-    # Need to refactor, fukken complicated conditions.
     def check_symbol_to_proc
       return unless method_call.block_argument_names.count == 1
       return if method_call.block_body.nil?
-      return unless method_call.block_body.sexp_type == :call
+      return unless method_call.block_body.size == 1
+      return unless method_call.block_body.first.is_a?(Prism::CallNode)
       return if method_call.arguments.count > 0
       return if method_call.lambda_literal?
 
-      body_method_call = MethodCall.new(method_call.block_body)
+      body_method_call = MethodCall.new(method_call.block_body.first)
 
       return unless body_method_call.arguments.count.zero?
       return if body_method_call.has_block?
@@ -149,7 +150,7 @@ module Fasterer
       first_argument = method_call.arguments.first
       return unless first_argument.type == :hash
 
-      if first_argument.element.drop(1).count == 2 # each key and value is an item by itself.
+      if first_argument.element.elements.count == 1
         add_offense(:hash_merge_bang_vs_hash_brackets)
       end
     end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'prism'
 require 'fasterer/method_definition'
 require 'fasterer/method_call'
 require 'fasterer/offense'
@@ -27,14 +28,13 @@ module Fasterer
     end
 
     def scan_block_call_offense
-      traverse_tree(method_definition.body) do |element|
-        next unless element.sexp_type == :call
+      block_name = method_definition.block_argument_name
+      traverse_tree(method_definition.body) do |node|
+        next unless node.is_a?(Prism::CallNode)
 
-        method_call = MethodCall.new(element)
-
-        if method_call.receiver.is_a?(Fasterer::VariableReference) &&
-           method_call.receiver.name == method_definition.block_argument_name &&
-           method_call.method_name == :call
+        if node.receiver.is_a?(Prism::LocalVariableReadNode) &&
+           node.receiver.name == block_name &&
+           node.name == :call
 
           add_offense(:proc_call_vs_yield) && return
         end
@@ -45,11 +45,14 @@ module Fasterer
       @method_definition ||= MethodDefinition.new(element)
     end
 
-    def traverse_tree(sexp_tree, &block)
-      sexp_tree.each do |element|
-        next unless element.is_a?(Array)
-        yield element
-        traverse_tree(element, &block)
+    def traverse_tree(nodes, &block)
+      return unless nodes
+
+      nodes.each do |node|
+        next unless node.is_a?(Prism::Node)
+        yield node
+        child_nodes = node.compact_child_nodes
+        traverse_tree(child_nodes, &block)
       end
     end
 
@@ -64,9 +67,13 @@ module Fasterer
       first_argument = method_definition.arguments.first
       return if first_argument.type != :regular_argument
 
-      if method_definition.body.first.sexp_type == :iasgn &&
-         method_definition.body.first[1].to_s == "@#{method_definition.name.to_s.delete_suffix('=')}" &&
-         method_definition.body.first[2][1] == first_argument.name
+      body_node = method_definition.body.first
+      expected_ivar = :"@#{method_definition.name.to_s.delete_suffix('=')}"
+
+      if body_node.is_a?(Prism::InstanceVariableWriteNode) &&
+         body_node.name == expected_ivar &&
+         body_node.value.is_a?(Prism::LocalVariableReadNode) &&
+         body_node.value.name == first_argument.name
 
         add_offense(:setter_vs_attr_writer)
       end
@@ -76,8 +83,11 @@ module Fasterer
       return if method_definition.arguments.size > 0
       return if method_definition.body.size != 1
 
-      if method_definition.body.first.sexp_type == :ivar &&
-         method_definition.body.first[1].to_s == "@#{method_definition.name}"
+      body_node = method_definition.body.first
+      expected_ivar = :"@#{method_definition.name}"
+
+      if body_node.is_a?(Prism::InstanceVariableReadNode) &&
+         body_node.name == expected_ivar
 
         add_offense(:getter_vs_attr_reader)
       end

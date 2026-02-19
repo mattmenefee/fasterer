@@ -331,7 +331,7 @@ describe Fasterer::FileTraverser do
 
     it 'should have errors' do
       expect(file_traverser.parse_error_paths.first)
-        .to start_with('user.rb - RubyParser::SyntaxError - unterminated')
+        .to start_with('user.rb - Fasterer::ParseError - ')
     end
   end
 

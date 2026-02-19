@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+require 'prism'
+
 module Fasterer
   class RescueCall
     attr_reader :element
     attr_reader :rescue_classes
 
-    def initialize(element)
-      @element = element
+    def initialize(node)
+      @element = node
       @rescue_classes = []
       set_rescue_classes
     end
@@ -14,10 +16,8 @@ module Fasterer
     private
 
     def set_rescue_classes
-      return if element[1].sexp_type != :array
-
-      @rescue_classes = element[1].drop(1).filter_map do |rescue_reference|
-        rescue_reference[1] if rescue_reference.sexp_type == :const
+      @rescue_classes = element.exceptions.filter_map do |exc|
+        exc.name if exc.is_a?(Prism::ConstantReadNode)
       end
     end
   end

@@ -2,12 +2,13 @@ require 'spec_helper'
 
 describe Fasterer::MethodDefinition do
   let(:def_element) do
-    Fasterer::Parser.parse(File.read(RSpec.root.join('support', 'method_definition', file_name)))
+    parsed = Fasterer::Parser.parse(
+      File.read(RSpec.root.join('support', 'method_definition', file_name))
+    )
+    parsed.value.statements.body.first
   end
 
-  let(:method_definition) do
-    Fasterer::MethodDefinition.new(def_element)
-  end
+  let(:method_definition) { Fasterer::MethodDefinition.new(def_element) }
 
   describe 'method with no arguments' do
     let(:file_name) { 'simple_method.rb' }

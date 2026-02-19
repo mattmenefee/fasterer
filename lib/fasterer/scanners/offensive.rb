@@ -14,8 +14,8 @@ module Fasterer
 
     private
 
-    def add_offense(offense_name, element_line_number = element.line)
-      self.offense = Fasterer::Offense.new(offense_name, element_line_number)
+    def add_offense(offense_name)
+      self.offense = Fasterer::Offense.new(offense_name, element.location.start_line)
     end
 
     def check_offense
