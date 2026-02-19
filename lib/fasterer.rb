@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fasterer/version'
 require 'fasterer/analyzer'
 require 'fasterer/method_definition'

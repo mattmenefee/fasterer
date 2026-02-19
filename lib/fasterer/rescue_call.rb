@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Fasterer
   class RescueCall
     attr_reader :element
