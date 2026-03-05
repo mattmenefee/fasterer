@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'prism'
-
 module Fasterer
   class MethodDefinition
     attr_reader :element

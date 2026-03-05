@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'prism'
 require 'fasterer/method_call'
 require 'fasterer/offense'
 require 'fasterer/scanners/offensive'

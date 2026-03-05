@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'prism'
-
 module Fasterer
   class RescueCall
     attr_reader :element

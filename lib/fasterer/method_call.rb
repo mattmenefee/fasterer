@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'prism'
-
 module Fasterer
   class MethodCall
     attr_reader :element
@@ -30,12 +28,6 @@ module Fasterer
       return true if lambda_literal?
 
       !element.block.nil?
-    end
-
-    def receiver_node
-      return if lambda_literal?
-
-      element.receiver
     end
 
     def lambda_literal?

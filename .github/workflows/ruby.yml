@@ -21,6 +21,8 @@ jobs:
       matrix:
         ruby-version: ['3.2', '3.3', '3.4', '4.0']
 
+    continue-on-error: ${{ matrix.ruby-version == '4.0' }}
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Ruby

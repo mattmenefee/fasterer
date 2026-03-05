@@ -38,6 +38,9 @@ module Fasterer
       @errors ||= Fasterer::OffenseCollector.new
     end
 
+    # Internal callbacks invoked by AnalyzerVisitor during AST traversal.
+    # Public only because AnalyzerVisitor is a separate class.
+
     def scan_method_definitions(node)
       scanner = MethodDefinitionScanner.new(node)
       errors.push(scanner.offense) if scanner.offense_detected?
