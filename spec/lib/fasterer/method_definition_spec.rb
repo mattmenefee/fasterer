@@ -74,5 +74,34 @@ describe Fasterer::MethodDefinition do
       expect(method_definition.method_name).to eq(:hello)
       expect(method_definition.has_block?).to eq(false)
     end
+
+    it 'should detect default argument type' do
+      arg = method_definition.arguments.first
+      expect(arg).to be_default_argument
+      expect(arg).not_to be_regular_argument
+      expect(arg).not_to be_keyword_argument
+    end
+  end
+
+  describe 'method with a keyword argument' do
+    let(:file_name) { 'method_with_keyword_argument.rb' }
+
+    it 'should detect keyword argument type' do
+      arg = method_definition.arguments.first
+      expect(arg).to be_keyword_argument
+      expect(arg).not_to be_regular_argument
+      expect(arg).not_to be_default_argument
+    end
+  end
+
+  describe 'method with a regular argument' do
+    let(:file_name) { 'simple_method_with_argument.rb' }
+
+    it 'should detect regular argument type' do
+      arg = method_definition.arguments.first
+      expect(arg).to be_regular_argument
+      expect(arg).not_to be_default_argument
+      expect(arg).not_to be_keyword_argument
+    end
   end
 end

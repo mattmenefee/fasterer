@@ -551,4 +551,43 @@ describe Fasterer::MethodCall do
       expect(mc.arguments.first).not_to be_a(Fasterer::BlockArgument)
     end
   end
+
+  describe 'BlockArgument' do
+    it 'always returns :block_pass for type' do
+      node = Prism.parse('foo(&block)').value.statements.body.first.block
+      arg = Fasterer::BlockArgument.new(node)
+      expect(arg.type).to eq(:block_pass)
+    end
+  end
+
+  describe 'Primitive' do
+    it 'detects array receivers' do
+      parsed = Fasterer::Parser.parse('[1, 2].map { |x| x }')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.receiver).to be_a(Fasterer::Primitive)
+      expect(mc.receiver).to be_array
+      expect(mc.receiver).not_to be_range
+    end
+
+    it 'detects range receivers' do
+      parsed = Fasterer::Parser.parse('(1..10).map { |x| x }')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.receiver).to be_a(Fasterer::Primitive)
+      expect(mc.receiver).to be_range
+      expect(mc.receiver).not_to be_array
+    end
+  end
+
+  describe 'namespaced constant receiver' do
+    let(:code) { 'Foo::Bar.hello' }
+    let(:call_element) { first_statement }
+
+    it 'should detect namespaced constant receiver' do
+      expect(method_call.method_name).to eq(:hello)
+      expect(method_call.receiver).to be_a(Fasterer::VariableReference)
+      expect(method_call.receiver.name).to eq(:Bar)
+    end
+  end
 end
