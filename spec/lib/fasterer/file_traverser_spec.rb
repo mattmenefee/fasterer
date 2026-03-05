@@ -321,6 +321,17 @@ describe Fasterer::FileTraverser do
     end
   end
 
+  describe 'non-existent path' do
+    let(:file_traverser) { Fasterer::FileTraverser.new('no_such_path') }
+
+    it 'outputs an error message' do
+      expect(file_traverser).to receive(:puts)
+        .with(a_string_matching(/No such file or directory/))
+      allow(file_traverser).to receive(:puts)
+      file_traverser.traverse
+    end
+  end
+
   describe 'parse errors' do
     before do
       create_file('user.rb', '[]*/sa*()')
