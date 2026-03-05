@@ -330,6 +330,7 @@ describe Fasterer::FileTraverser do
     let(:file_traverser) { Fasterer::FileTraverser.new('.') }
 
     it 'should have errors' do
+      expect(file_traverser.parse_error_paths.count).to eq(1)
       expect(file_traverser.parse_error_paths.first)
         .to start_with('user.rb - Fasterer::ParseError - ')
     end

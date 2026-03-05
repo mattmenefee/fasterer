@@ -75,14 +75,16 @@ module Fasterer
 
     def set_block_argument_names
       block = element.block
-      @block_argument_names = if block.is_a?(Prism::BlockNode) &&
-                                  block.parameters.is_a?(Prism::BlockParametersNode) &&
-                                  block.parameters.parameters
-                                params = block.parameters.parameters
-                                params.requireds.map(&:name)
-                              else
-                                []
-                              end
+      unless block.is_a?(Prism::BlockNode)
+        return @block_argument_names = []
+      end
+
+      params = block.parameters
+      unless params.is_a?(Prism::BlockParametersNode) && params.parameters
+        return @block_argument_names = []
+      end
+
+      @block_argument_names = params.parameters.requireds.map(&:name)
     end
   end
 
@@ -94,7 +96,8 @@ module Fasterer
       node = unwrap_parentheses(node)
 
       case node
-      when Prism::LocalVariableReadNode
+      when Prism::LocalVariableReadNode,
+           Prism::ConstantReadNode, Prism::ConstantPathNode
         VariableReference.new(node)
       when Prism::CallNode
         MethodCall.new(node)
@@ -146,7 +149,12 @@ module Fasterer
       @type ||= case element
                 when Prism::KeywordHashNode, Prism::HashNode then :hash
                 when Prism::BlockArgumentNode then :block_pass
-                else element.class
+                when Prism::StringNode then :string
+                when Prism::IntegerNode then :integer
+                when Prism::SymbolNode then :symbol
+                when Prism::FloatNode then :float
+                when Prism::RegularExpressionNode then :regexp
+                else :unknown
                 end
     end
 

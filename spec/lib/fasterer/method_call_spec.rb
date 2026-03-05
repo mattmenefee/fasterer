@@ -20,6 +20,8 @@ describe Fasterer::MethodCall do
         it 'should detect constant' do
           expect(method_call.method_name).to eq(:hello)
           expect(method_call.arguments).to be_empty
+          expect(method_call.receiver).to be_a(Fasterer::VariableReference)
+          expect(method_call.receiver.name).to eq(:User)
         end
       end
 
@@ -30,6 +32,7 @@ describe Fasterer::MethodCall do
         it 'should detect integer' do
           expect(method_call.method_name).to eq(:hello)
           expect(method_call.arguments).to be_empty
+          expect(method_call.receiver).to be_a(Fasterer::Primitive)
         end
       end
 
@@ -40,6 +43,7 @@ describe Fasterer::MethodCall do
         it 'should detect string' do
           expect(method_call.method_name).to eq(:hello)
           expect(method_call.arguments).to be_empty
+          expect(method_call.receiver).to be_a(Fasterer::Primitive)
         end
       end
 
@@ -76,6 +80,8 @@ describe Fasterer::MethodCall do
         it 'should detect constant' do
           expect(method_call.method_name).to eq(:hello)
           expect(method_call.arguments).to be_empty
+          expect(method_call.receiver).to be_a(Fasterer::VariableReference)
+          expect(method_call.receiver.name).to eq(:User)
         end
       end
 
@@ -86,6 +92,7 @@ describe Fasterer::MethodCall do
         it 'should detect integer' do
           expect(method_call.method_name).to eq(:hello)
           expect(method_call.arguments).to be_empty
+          expect(method_call.receiver).to be_a(Fasterer::Primitive)
         end
       end
 
@@ -96,6 +103,7 @@ describe Fasterer::MethodCall do
         it 'should detect string' do
           expect(method_call.method_name).to eq(:hello)
           expect(method_call.arguments).to be_empty
+          expect(method_call.receiver).to be_a(Fasterer::Primitive)
         end
       end
 
@@ -277,6 +285,13 @@ describe Fasterer::MethodCall do
   end
 
   describe 'with implicit receiver' do
+    let(:code) { 'puts "hello"' }
+    let(:call_element) { first_statement }
+
+    it 'should have nil receiver' do
+      expect(method_call.method_name).to eq(:puts)
+      expect(method_call.receiver).to be_nil
+    end
   end
 
   describe 'method call with an argument and a block' do
@@ -365,6 +380,7 @@ describe Fasterer::MethodCall do
 
     it 'should detect block pass argument' do
       expect(method_call.method_name).to eq(:select)
+      expect(method_call.arguments).to be_empty
       expect(method_call.has_block?).to be true
     end
   end
@@ -440,6 +456,99 @@ describe Fasterer::MethodCall do
       it 'should be false' do
         expect(method_call).not_to be_lambda_literal
       end
+    end
+  end
+
+  describe 'Argument#type' do
+    let(:method_call) { Fasterer::MethodCall.new(first_statement) }
+
+    it 'returns :symbol for symbol arguments' do
+      parsed = Fasterer::Parser.parse('{}.fetch(:key)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.type).to eq(:symbol)
+    end
+
+    it 'returns :string for string arguments' do
+      parsed = Fasterer::Parser.parse('{}.fetch("key")')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.type).to eq(:string)
+    end
+
+    it 'returns :integer for integer arguments' do
+      parsed = Fasterer::Parser.parse('[].flatten(1)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.type).to eq(:integer)
+    end
+
+    it 'returns :float for float arguments' do
+      parsed = Fasterer::Parser.parse('foo(1.5)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.type).to eq(:float)
+    end
+
+    it 'returns :regexp for regexp arguments' do
+      parsed = Fasterer::Parser.parse('{}.fetch(/.*/) ')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.type).to eq(:regexp)
+    end
+
+    it 'returns :hash for hash arguments' do
+      parsed = Fasterer::Parser.parse('foo(a: 1)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.type).to eq(:hash)
+    end
+
+    it 'returns :unknown for unhandled node types' do
+      parsed = Fasterer::Parser.parse('foo(nil)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.type).to eq(:unknown)
+    end
+  end
+
+  describe 'Argument#value' do
+    it 'returns string value for string arguments' do
+      parsed = Fasterer::Parser.parse('{}.fetch("hello")')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.value).to eq("hello")
+    end
+
+    it 'returns symbol value for symbol arguments' do
+      parsed = Fasterer::Parser.parse('{}.fetch(:key)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.value).to eq(:key)
+    end
+
+    it 'returns float value for float arguments' do
+      parsed = Fasterer::Parser.parse('foo(2.5)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.value).to eq(2.5)
+    end
+
+    it 'returns nil for unhandled node types' do
+      parsed = Fasterer::Parser.parse('foo(nil)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first.value).to be_nil
+    end
+  end
+
+  describe 'ArgumentFactory' do
+    it 'returns Argument for regular argument nodes' do
+      parsed = Fasterer::Parser.parse('[].flatten(1)')
+      node = parsed.value.statements.body.first
+      mc = Fasterer::MethodCall.new(node)
+      expect(mc.arguments.first).to be_a(Fasterer::Argument)
+      expect(mc.arguments.first).not_to be_a(Fasterer::BlockArgument)
     end
   end
 end
