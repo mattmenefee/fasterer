@@ -82,5 +82,10 @@ module Fasterer
       @analyzer.scan_rescue(node)
       super
     end
+
+    def visit_lambda_node(node)
+      @analyzer.scan_method_calls(node)
+      super
+    end
   end
 end
