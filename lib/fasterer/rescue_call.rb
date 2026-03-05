@@ -17,7 +17,10 @@ module Fasterer
 
     def set_rescue_classes
       @rescue_classes = element.exceptions.filter_map do |exc|
-        exc.name if exc.is_a?(Prism::ConstantReadNode)
+        case exc
+        when Prism::ConstantReadNode, Prism::ConstantPathNode
+          exc.name
+        end
       end
     end
   end

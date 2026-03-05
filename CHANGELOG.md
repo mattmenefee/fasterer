@@ -2,6 +2,7 @@
 
 ## 0.12.0
 
+- Migrate from `ruby_parser` to Ruby's native Prism parser for improved performance and Ruby 4.0 compatibility
 - Add explicit support for Ruby 4.0
 - Drop support for EOL Ruby versions (2.x, 3.0, 3.1). The minimum required Ruby version is now 3.2.
 

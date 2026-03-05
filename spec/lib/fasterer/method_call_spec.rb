@@ -380,6 +380,40 @@ describe Fasterer::MethodCall do
     end
   end
 
+  describe 'receiver through parenthesized expression' do
+    describe 'single expression in parentheses' do
+      let(:code) { "arr = [1]\n(arr).map { |x| x }" }
+      let(:call_element) { second_statement }
+
+      it 'unwraps parentheses to find the receiver' do
+        expect(method_call.method_name).to eq(:map)
+        expect(method_call.receiver).to be_a(Fasterer::VariableReference)
+        expect(method_call.receiver.name).to eq(:arr)
+      end
+    end
+
+    describe 'multi-statement parentheses (not unwrapped)' do
+      let(:code) { "(1; 2).to_s" }
+      let(:call_element) { first_statement }
+
+      it 'does not unwrap multi-statement parentheses' do
+        expect(method_call.method_name).to eq(:to_s)
+        expect(method_call.receiver).to be_nil
+      end
+    end
+
+    describe 'method call in parentheses' do
+      let(:code) { '(1.to_s).length' }
+      let(:call_element) { first_statement }
+
+      it 'unwraps to the inner method call' do
+        expect(method_call.method_name).to eq(:length)
+        expect(method_call.receiver).to be_a(Fasterer::MethodCall)
+        expect(method_call.receiver.name).to eq(:to_s)
+      end
+    end
+  end
+
   describe '#lambda_literal?' do
     describe 'lambda literal without arguments' do
       let(:code) { '-> {}' }

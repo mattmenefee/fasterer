@@ -57,4 +57,20 @@ describe Fasterer::RescueCall do
       expect(rescue_call.rescue_classes).to eq([:NoMethodError, :StandardError])
     end
   end
+
+  describe 'rescue call with namespaced class' do
+    let(:file_name) { 'rescue_with_namespaced_class.rb' }
+
+    it 'should detect namespaced rescue class' do
+      expect(rescue_call.rescue_classes).to eq([:RecordNotFound])
+    end
+  end
+
+  describe 'rescue call with mixed simple and namespaced classes' do
+    let(:file_name) { 'rescue_with_mixed_classes.rb' }
+
+    it 'should detect all rescue classes' do
+      expect(rescue_call.rescue_classes).to eq([:NoMethodError, :RecordNotFound])
+    end
+  end
 end
